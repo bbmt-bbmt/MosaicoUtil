@@ -32,33 +32,23 @@ def parse_json(json_dict):
         except ValueError:
             i=i+1
             continue
-        # key = key.strip()
         value = value[:-1].strip('" ')
         value = value.replace('\\"','"')
-        # print(value)
         if "text" in key[-5:].lower():
             soup = BeautifulSoup(value, "html.parser")
-            # ne marche pas pbm au niveau du html avec des\""
+
             final_value = soup.decode(formatter=None)
             final_value = final_value.replace('"','\\"')
             texts = soup.find_all(string=True)
             for t in texts:
                 if type(t) == NavigableString and t.parent.name != "style": 
-                    # if "ro 31" in value:
-                    #     print(key, value)
-                    #     print("t avant", t) 
-                    #     print("json avant", json_list[i])
                     final_value = final_value.replace(t.strip(), modif_text(t).strip())
                     # le strip est important 
                     # json_list[i]=json_list[i].replace(t.encode(formatter=None).strip(), modif_text(t).strip())
-                    json_list[i]= key + ': "' + final_value +'",'
-                    # if "ro 31" in value:
-                    #     print(key, value)
-                    #     print("t apres", modif_text(t).strip())
-                    #     print("json apres", json_list[i])  
+                    json_list[i]= key + ': "' + final_value +'"'
+                    if json_list[i+1].strip() != "}":
+                        json_list[i] = json_list[i] +','
         i=i+1
-    # result_file = open("new_json.json", "w", encoding="utf-8")
-    # result_file.write("\n".join(az))
     return "\n".join(json_list)
 
 def modif_balise(html):
