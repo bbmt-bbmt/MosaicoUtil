@@ -514,7 +514,7 @@ class Application(tk.Frame):
         html = re.sub("<title>(.|\s)*?</title>", "<title>%s</title>" % title, html)
 
         # modification du texte: féminisation, ponctuation ...
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(html, "lxml")
         texts = soup.find_all(string=True)
         for t in texts:
             if type(t) == NavigableString and t.parent.name != "style":
@@ -522,7 +522,7 @@ class Application(tk.Frame):
 
         # modification des balises
         html = soup.prettify(formatter=None)
-        html = modif_balise(html)
+        # html = modif_balise(html)
 
         # ecriture du nouveau fichier pour internet
         # path = pathlib.Path(file_name)

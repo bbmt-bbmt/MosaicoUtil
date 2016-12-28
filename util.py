@@ -36,7 +36,7 @@ def parse_json(json_dict):
         value = value[:-1].strip('" ')
         value = value.replace('\\"','"')
         if "text" in key[-5:].lower():
-            soup = BeautifulSoup(value, "html.parser")
+            soup = BeautifulSoup(value, "lxml")
 
             final_value = soup.decode(formatter=None)
             final_value = final_value.replace('"','\\"')
@@ -56,19 +56,19 @@ def modif_balise(html):
     # suppression des data-mce qui serve à rien
     html = re.sub(" data-mce-.*?=[\"'].*?[\"']","",html)
     # modification des <br> en <br/>
-    html = html.replace("<br>", "<br/>")
+    # html = html.replace("<br>", "<br/>")
     # modification des <img ...> en <img ... />
-    html = re.sub("(<img.*?)>", r"\1/>", html)
+    # html = re.sub("(<img.*?)>", r"\1/>", html)
     # modification des meta
-    html = re.sub("(<meta.*?)>", r"\1/>", html)
+    # html = re.sub("(<meta.*?)>", r"\1/>", html)
     # modification des hr
-    html = re.sub("(<hr.*?)>", r"\1/>", html)
+    # html = re.sub("(<hr.*?)>", r"\1/>", html)
     # suppression du footer
     html = re.sub("<!-- footerBlock -->(.|\s)*?<!-- /footerBlock -->", "", html)
     return html
 
 def verif_html(html):
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html, "lxml")
     imgs = soup.find_all("img")
     alt_text = 0
     href_img = 0
