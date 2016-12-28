@@ -10,13 +10,14 @@ import sys
 import traceback
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
-from util import modif_text, parse_json, modif_balise
+from util import modif_text, parse_json, modif_balise, verif_html
 import sqlite3
 import json
 import os
 import fnmatch
 from threading import Thread
 import time
+import configparser
 
 icon = """iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAAXNSR0IArs4c6QAAAARnQU1BAACx
 jwv8YQUAAAMAUExURQAAAAUAAAkAAA0AABEAABUAABkAAB0AACEAACQAACoAAC0AADEAADUAADkA
@@ -247,35 +248,68 @@ ZAHiZIoRH0Nk1LAB9NoRJGaCINkxg8emQAA7"""
 
 
 class FindThread(Thread):
-    def __init__(self, app, init_dir, file):
+    def __init__(self, app):#, init_dir, file, result):
         super().__init__()
         self.app = app
         self.stop = False
-        self.init_dir = init_dir
-        self.file = file
+        # self.init_dir = init_dir
+        # self.file = file
         # self.result = result
         return
 
     def run(self):
-        throbber_thread = ThrobberThread(self.app.throbber_label, throbber_gif)
-        throbber_thread.start()
-        matches = []
-        for root, dirnames, filenames in os.walk(self.init_dir):
-            # print(root, filenames)
-            for filename in fnmatch.filter(filenames, self.file):
+        try:
+            throbber_thread = ThrobberThread(self.app.throbber_label, throbber_gif)
+            throbber_thread.start()
+            profile_matches = []
+            # on cherche le fichier profiles.ini
+            src_dir = os.path.expanduser("~")
+            profile_file = "profiles.ini"
+            for root, dirnames, filenames in os.walk(src_dir):
                 if "firefox" in root.lower():
-                    matches.append(os.path.join(root, filename))
-    
-        throbber_thread.stop = True
-        throbber_thread.join()
-        if len(matches) != 1:
-            info = "%s fichiers trouvé(s)\n" % len(matches)
-            for f in matches:
-                info = info + f + "\n"
-            messagebox.showinfo(message=info)
-        else:
-            self.app.webappsstore_text.delete(0, tk.END)
-            self.app.webappsstore_text.insert(0, matches[0])
+                    for filename in fnmatch.filter(filenames, profile_file):
+                        profile_matches.append(os.path.join(root, filename))
+                        print(root, filename)
+                if  profile_matches:
+                    break
+            if profile_matches == []:
+                messagebox.showinfo(message="Aucun fichier profiles.ini trouvé", title="Erreur")
+                return
+            # dans le fichier profiles.ini on tente d'extraire le profile par defaut
+            config_ini = configparser.ConfigParser()
+            try:
+                config_ini.read(profile_matches[0])
+            except IndexError:
+                messagebox.showinfo(message="Aucun fichier profiles.ini trouvé", title="Erreur")
+                return
+
+            dict_ini = config_ini._sections
+            path = None
+            for section, items in dict_ini.items():
+                if "Profile" in section:
+                    try:
+                        if items["default"] == "1":
+                            path = items["path"]
+                            break
+                    except KeyError:
+                        pass
+            src_dir = pathlib.Path(profile_matches[0]).parent
+            try:
+                path = src_dir / path / "webappsstore.sqlite"
+            except TypeError:
+                messagebox.showinfo(message="Aucun profile par defaut trouvé", title="Erreur")
+                return
+
+            if path.is_file():
+                self.app.webappsstore_text.delete(0, tk.END)
+                self.app.webappsstore_text.insert(0, str(path))
+                return
+            else:
+                messagebox.showinfo(message="impossible d'extraire le profile par défaut \
+                                            dans le fichier profiles.ini", title="Erreur")
+        finally:
+            throbber_thread.stop = True
+            throbber_thread.join()
         return
 
 class ThrobberThread(Thread):
@@ -391,7 +425,7 @@ class Application(tk.Frame):
     def on_webappsstore_auto_button_clicked(self):
         # result = None
         # self.throbber_label.pack(side=tk.LEFT, padx=5, pady=5)
-        find_thread = FindThread(self,os.path.expanduser("~"), "webappsstore.sqlite")
+        find_thread = FindThread(self)#,os.path.expanduser("~"), "webappsstore.sqlite", result)
         find_thread.start()
         return
 
@@ -504,6 +538,8 @@ class Application(tk.Frame):
         save_file_name = "fichier_pour_thunderbird.html"
         with open(save_file_name, mode="w", encoding="utf-8") as f:
             f.write(html)
+
+        verif_html(html)
 
         messagebox.showinfo(message="fichier modifié", title="fichier modifié")
         return

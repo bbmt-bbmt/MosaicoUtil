@@ -5,6 +5,7 @@ from bs4 import NavigableString
 import json
 import re
 import sys
+from tkinter import messagebox
 
 def modif_text(text):
     # à mettre avant le traitement des espaces sinon le -e : peut devenir -e&nbsp:
@@ -66,6 +67,30 @@ def modif_balise(html):
     html = re.sub("<!-- footerBlock -->(.|\s)*?<!-- /footerBlock -->", "", html)
     return html
 
+def verif_html(html):
+    soup = BeautifulSoup(html, "html.parser")
+    imgs = soup.find_all("img")
+    alt_text = 0
+    href_img = 0
+    for img in imgs:
+        try:
+            if img["alt"] == "":
+                alt_text = alt_text + 1
+        except KeyError:
+            alt_text = alt_text + 1
+
+        if img.parent.name != "a":
+            href_img = href_img + 1
+
+    message = "Attention il y a:\n"
+    if alt_text != 0:
+        message = message + "%s image(s) qui n'ont pas de texte alternatif" % alt_text
+    if href_img != 0:
+        message = message + "%s image(s) qui n'ont pas de lien" % href_img
+    if alt_text != 0 or href_img != 0:
+        messagebox.showinfo(message="Attention il y a:\n %s image(s) qui n'ont pas de texte alternatif.\n %s image(s) qui n'ont pas de lien"
+                                    % (alt_text, href_img), title="Avertissement" )
+    return
 def main(args):
     pass
 
