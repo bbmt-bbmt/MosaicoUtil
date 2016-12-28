@@ -55,6 +55,7 @@ def parse_json(json_dict):
 def modif_balise(html):
     # suppression des data-mce qui serve à rien
     html = re.sub(" data-mce-.*?=[\"'].*?[\"']","",html)
+    # la fermeture des balises est faite automatiquement grace au parser lxml
     # modification des <br> en <br/>
     # html = html.replace("<br>", "<br/>")
     # modification des <img ...> en <img ... />

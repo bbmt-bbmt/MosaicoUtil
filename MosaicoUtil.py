@@ -522,11 +522,9 @@ class Application(tk.Frame):
 
         # modification des balises
         html = soup.prettify(formatter=None)
-        # html = modif_balise(html)
+        html = modif_balise(html)
 
         # ecriture du nouveau fichier pour internet
-        # path = pathlib.Path(file_name)
-        # save_file_name = str(path.with_name("fichier_pour_site_internet.html"))
         save_file_name = "fichier_pour_site_internet.html"
         with open(save_file_name, mode="w", encoding="utf-8") as f:
             f.write(html)
