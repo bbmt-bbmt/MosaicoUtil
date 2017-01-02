@@ -18,6 +18,7 @@ import fnmatch
 from threading import Thread
 import time
 import configparser
+import urllib
 
 icon = """iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAAXNSR0IArs4c6QAAAARnQU1BAACx
 jwv8YQUAAAMAUExURQAAAAUAAAkAAA0AABEAABUAABkAAB0AACEAACQAACoAAC0AADEAADUAADkA
@@ -269,7 +270,7 @@ class FindThread(Thread):
                 if "firefox" in root.lower():
                     for filename in fnmatch.filter(filenames, profile_file):
                         profile_matches.append(os.path.join(root, filename))
-                        print(root, filename)
+                        # print(root, filename)
                 if  profile_matches:
                     break
             if profile_matches == []:
@@ -388,13 +389,21 @@ class Application(tk.Frame):
         self.html_group = tk.LabelFrame(self, text="Modif HTML")
         self.html_group.pack(fill=tk.X, padx=20, pady=10)
 
-        self.frame_html_file = tk.Frame(self.html_group)
-        self.frame_html_file.pack(fill=tk.X)
-        self.label_html_file = tk.Label(self.frame_html_file,text="Nouveau titre")
-        self.label_html_file.pack(side=tk.LEFT, padx=10, pady=5)
-        self.title_text = tk.Entry(self.frame_html_file)
+        self.frame_title = tk.Frame(self.html_group)
+        self.frame_title.pack(fill=tk.X)
+        self.label_title = tk.Label(self.frame_title,text="Nouveau titre")
+        self.label_title.pack(side=tk.LEFT, padx=10, pady=5)
+        self.title_text = tk.Entry(self.frame_title)
         self.title_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=10, pady=5)
         self.title_text.bind("<KeyPress-Return>", self.on_file_html_button_clicked)
+
+        self.frame_img_path = tk.Frame(self.html_group)
+        self.frame_img_path.pack(fill=tk.X)
+        self.label_img_path = tk.Label(self.frame_img_path,text="Path des images")
+        self.label_img_path.pack(side=tk.LEFT, padx=10, pady=5)
+        self.img_path = tk.Entry(self.frame_img_path)
+        self.img_path.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=10, pady=5)
+        self.img_path.bind("<KeyPress-Return>", self.on_file_html_button_clicked)
 
         self.frame_html_file_button = tk.Frame(self.html_group)
         self.frame_html_file_button.pack(fill=tk.X)
@@ -502,6 +511,7 @@ class Application(tk.Frame):
 
     def on_file_html_button_clicked(self, event=None):
         title = self.title_text.get()
+        img_path = self.img_path.get()
         file_name = filedialog.askopenfilename(initialdir=".", filetypes=[("html","*.htm*")])
         try:
             with open(file_name, mode="r", encoding="utf-8") as f:
@@ -520,9 +530,28 @@ class Application(tk.Frame):
             if type(t) == NavigableString and t.parent.name != "style":
                 t.replace_with(modif_text(t))
 
+        # modification du src des img
+        if img_path != "":
+            if img_path[-1:] != "/":
+                img_path = img_path + "/"
+            imgs = soup.find_all("img")
+            for img in imgs:
+                # faut le faire 2 fois à cause du cas %2520
+                src = urllib.parse.unquote(img["src"])
+                src = urllib.parse.unquote(src)
+                reg_img_name = re.search("/.*/(.*\.[\w]{3})",src)
+                try: 
+                    img_name = reg_img_name.group(1)
+                    img["src"] = img_path + urllib.parse.quote(img_name)
+                except AttributeError:
+                    pass
+
+
+
         # modification des balises
         html = soup.prettify(formatter=None)
         html = modif_balise(html)
+
 
         # ecriture du nouveau fichier pour internet
         save_file_name = "fichier_pour_site_internet.html"
