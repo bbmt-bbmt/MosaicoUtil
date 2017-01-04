@@ -348,6 +348,16 @@ class Application(tk.Frame):
     def createWidgets(self):
         self.pack(fill=tk.BOTH, expand=1)
 
+        # parametre commun
+        self.param_commun = tk.LabelFrame(self, text="Commun")
+        self.param_commun.pack(fill=tk.X, padx=20, pady=10)
+        self.frame_img_path = tk.Frame(self.param_commun)
+        self.frame_img_path.pack(fill=tk.X)
+        self.label_img_path = tk.Label(self.frame_img_path,text="Path des images")
+        self.label_img_path.pack(side=tk.LEFT, padx=10, pady=5)
+        self.img_path = tk.Entry(self.frame_img_path)
+        self.img_path.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=10, pady=5)
+
         # interface pour la partie json
         self.json_group = tk.LabelFrame(self, text="JSON outils")
         self.json_group.pack(fill=tk.X, padx=20, pady=10)
@@ -397,13 +407,7 @@ class Application(tk.Frame):
         self.title_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=10, pady=5)
         self.title_text.bind("<KeyPress-Return>", self.on_file_html_button_clicked)
 
-        self.frame_img_path = tk.Frame(self.html_group)
-        self.frame_img_path.pack(fill=tk.X)
-        self.label_img_path = tk.Label(self.frame_img_path,text="Path des images")
-        self.label_img_path.pack(side=tk.LEFT, padx=10, pady=5)
-        self.img_path = tk.Entry(self.frame_img_path)
-        self.img_path.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=10, pady=5)
-        self.img_path.bind("<KeyPress-Return>", self.on_file_html_button_clicked)
+        
 
         self.frame_html_file_button = tk.Frame(self.html_group)
         self.frame_html_file_button.pack(fill=tk.X)
@@ -422,7 +426,7 @@ class Application(tk.Frame):
 
     def centerWindow(self):
         w = 500
-        h = 300
+        h = 350
 
         sw = self.master.winfo_screenwidth()
         sh = self.master.winfo_screenheight()
@@ -491,7 +495,7 @@ class Application(tk.Frame):
             messagebox.showinfo(message="Le fichier n'existe pas", title="Fichier non trouvé")
             return
 
-        result = parse_json(json_dict)
+        result = parse_json(json_dict, self.img_path.get())
 
         # ecriture du nouveau fichier
         path = pathlib.Path(file_name)

@@ -6,6 +6,7 @@ import json
 import re
 import sys
 from tkinter import messagebox
+import urllib
 
 def modif_text(text):
     # à mettre avant le traitement des espaces sinon le -e : peut devenir -e&nbsp:
@@ -20,7 +21,7 @@ def modif_text(text):
     return result
 
 
-def parse_json(json_dict):
+def parse_json(json_dict, img_path):
     # json_file = open("14112016.json", "r", encoding="utf-8")
     # json_dict = json.load(json_file)
     # result = parse_json(json_dict)
@@ -33,7 +34,10 @@ def parse_json(json_dict):
         except ValueError:
             i=i+1
             continue
-        value = value[:-1].strip('" ')
+        # le -1 c'est à cause du point virgule de fin de ligne"
+        if value[-1] == ",":
+            value = value[:-1]
+        value = value.strip('" ')
         value = value.replace('\\"','"')
         if "text" in key[-5:].lower():
             soup = BeautifulSoup(value, "lxml")
@@ -47,7 +51,24 @@ def parse_json(json_dict):
                     # le strip est important 
                     # json_list[i]=json_list[i].replace(t.encode(formatter=None).strip(), modif_text(t).strip())
                     json_list[i]= key + ': "' + final_value +'"'
-                    if json_list[i+1].strip() != "}":
+                    if "}" not in json_list[i+1]:
+                        json_list[i] = json_list[i] +','
+        if '"src"' in key and img_path != "":
+            if img_path[-1:] != "/":
+                img_path = img_path + "/"
+            # on unquote 2 fois à cause de %2520
+            src = urllib.parse.unquote(value)
+            src = urllib.parse.unquote(src)
+            reg_img_name = re.search("/.*/(.*\.[\w]{3})",src)
+            try: 
+                img_name = reg_img_name.group(1)
+            except AttributeError:
+                pass
+            else:
+                # si mosaico est dans le nom du fichier, ce n'est pas une image que l'on traite
+                if "mosaico" not in img_name.lower():
+                    json_list[i] = key + ': "' + img_path + urllib.parse.quote(img_name) +'"'
+                    if "}" not in json_list[i+1]:
                         json_list[i] = json_list[i] +','
         i=i+1
     return "\n".join(json_list)
