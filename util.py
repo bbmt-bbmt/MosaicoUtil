@@ -13,11 +13,11 @@ def modif_text(text):
     # Modification de la féminisation
     result = re.sub("-e-s|-e", lambda m: "&#8209;e" if m.group(0) == "-e" else "&#8209;e&#8209;s ", text)
     # Suppression des espaces multiple
-    result = re.sub("( |&nbsp;)+", " ", result)
+    result = re.sub("( |\u00a0|&nbsp;)+", " ", result)
     # Modification de la ponctuation
-    result = re.sub(" ?([:!\?]) ?", r"&nbsp;\1 ", result)
+    result = re.sub("[\u00a0 ]?([:!\?])[\u00a0 ]?", r"&nbsp;\1 ", result)
     # modification des guillements
-    result = re.sub('" ?((.|\s)*?) ?"', r"&laquo;&nbsp;\1&nbsp;&raquo;", result)
+    result = re.sub('"[\u00a0 ]?((.|\s)*?)[\u00a0 ]?"', r"&laquo;&nbsp;\1&nbsp;&raquo;", result)
     return result
 
 
