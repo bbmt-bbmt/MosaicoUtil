@@ -2,4 +2,4 @@
 
 Modifie le fichier html issue de mosaico pour pouvoir ensuite l'envoyer avec thunderbird
 
-[binaire windows](https://github.com/bbmt-bbmt/MosaicoUtil/raw/master/binary/MosaicoUtil-win32b-v0.3.exe)
+[binaire windows](https://github.com/bbmt-bbmt/MosaicoUtil/raw/master/binary/MosaicoUtil-win32b-v0.4.exe)
