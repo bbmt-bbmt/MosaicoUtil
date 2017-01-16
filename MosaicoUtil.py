@@ -10,7 +10,7 @@ import sys
 import traceback
 from bs4 import BeautifulSoup
 from bs4 import NavigableString
-from util import modif_text, parse_json, modif_balise, verif_html
+from util import modif_text, parse_json, modif_balise, verif_html, firefox_running, firefox_path
 import sqlite3
 import json
 import os
@@ -19,6 +19,8 @@ from threading import Thread
 import time
 import configparser
 import urllib
+import subprocess
+import shlex
 
 icon = """iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAAXNSR0IArs4c6QAAAARnQU1BAACx
 jwv8YQUAAAMAUExURQAAAAUAAAkAAA0AABEAABUAABkAAB0AACEAACQAACoAAC0AADEAADUAADkA
@@ -461,7 +463,22 @@ class Application(tk.Frame):
         sql = 'UPDATE webappsstore2 SET value=? WHERE originKey LIKE "%%ociasom%%" AND key LIKE ?' #% (json_str, template_name)
         cursor.execute(sql, (json_str, template_name))
         conn.commit()
-        messagebox.showinfo(message="Import réussit", title="Import réussit")
+
+        final_message = "Import réussit"
+        if firefox_running():
+            final_message += ("\nVous devez fermer et re-ouvrir firefox\n"
+                              "voici l'adresse à utiliser: https://mosaico.io/editor.html#%s" % template_id)
+        else:
+            final_message += "\nfirefox va être lancé avec l'identifiant json %s" % template_id
+
+        messagebox.showinfo(message=final_message, title="Import réussit")
+
+        if not firefox_running():
+            try:
+                subprocess.Popen([firefox_path(), "https://mosaico.io/editor.html#%s" % template_id])
+            # on prend tout pour ne pas crasher le programme
+            except Exception as e:
+                messagebox.showinfo(message="Impossible de lancé firefox, vous devez le faire vous même :-)")
         return
 
     def on_export_json_button_clicked(self):

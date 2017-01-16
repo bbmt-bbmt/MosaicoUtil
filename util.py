@@ -7,6 +7,8 @@ import re
 import sys
 from tkinter import messagebox
 import urllib
+import psutil
+import os
 
 def modif_text(text):
     # à mettre avant le traitement des espaces sinon le -e : peut devenir -e&nbsp:
@@ -113,6 +115,43 @@ def verif_html(html):
         messagebox.showinfo(message="Attention il y a:\n %s image(s) qui n'ont pas de texte alternatif.\n %s image(s) qui n'ont pas de lien"
                                     % (alt_text, href_img), title="Avertissement" )
     return
+
+def firefox_running():
+    firefox_on = False
+    for pid in psutil.process_iter():
+        if "firefox" in pid.name():
+            firefox_on = True
+            break
+    return firefox_on
+
+def firefox_path():
+    if "nt" in os.name:
+        return win_firefox_path()
+    elif "posix" in os.name:
+        return "firefox"
+    else:
+        raise Warning
+
+
+def win_firefox_path():
+    try:
+        win32_firefox_path = os.environ["ProgramFiles(x86)"] + "\\Mozilla Firefox\\firefox.exe"
+        if not os.path.isfile(win32_firefox_path):
+            win32_firefox_path = ""
+    except KeyError:
+        win32_firefox_path = ""
+    try:
+        win64_firefox_path = os.environ["ProgramFiles"] + "\\Mozilla Firefox\\firefox.exe"
+        if not os.path.isfile(win64_firefox_path):
+            win64_firefox_path = ""
+    except KeyError:
+        win64_firefox_path = ""
+
+    if win64_firefox_path != "" and win32_firefox_path != "":
+        raise Warning
+    firefox_path = win32_firefox_path or win64_firefox_path
+    return firefox_path
+
 def main(args):
     pass
 
