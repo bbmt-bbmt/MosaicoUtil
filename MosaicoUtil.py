@@ -84,10 +84,10 @@ class FindThread(Thread):
                 return
 
             if path.is_file():
-                self.app.webappsstore_text.config(state=tk.NORMAL)
+                self.app.webappsstore_text.config(state="normal")
                 self.app.webappsstore_text.delete(0, tk.END)
                 self.app.webappsstore_text.insert(0, str(path))
-                self.app.webappsstore_text.config(state=tk.DISABLED)
+                self.app.webappsstore_text.config(state="readonly")
                 return
             else:
                 messagebox.showinfo(message="impossible d'extraire le profile par défaut \
@@ -153,7 +153,8 @@ class Application(tk.Frame):
         # poru tracer le changement de texte
         self.str_webappstore = tk.StringVar()
         self.str_webappstore.trace("w", self.on_webappstore_change)
-        self.webappsstore_text = tk.Entry(self.frame_webappsstore, textvariable=self.str_webappstore, state=tk.DISABLED, disabledbackground="white")
+        self.webappsstore_text = tk.Entry(self.frame_webappsstore, textvariable=self.str_webappstore, state="readonly", 
+                                          disabledforeground="black", disabledbackground="white")
         self.webappsstore_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=5, pady=5)
         self.webappsstore_file_button = tk.Button(self.frame_webappsstore, text="...", command=self.on_webappsstore_file_button_clicked)
         self.webappsstore_file_button.pack(side=tk.LEFT,padx=5, pady=5)
@@ -169,7 +170,7 @@ class Application(tk.Frame):
         self.frame_template_id.pack(fill=tk.X)
         self.label_template_id = tk.Label(self.frame_template_id,text="Template id")
         self.label_template_id.pack(side=tk.LEFT, padx=5, pady=5)
-        self.combo_box_template_id = ttk.Combobox(self.frame_template_id, state=tk.DISABLED)
+        self.combo_box_template_id = ttk.Combobox(self.frame_template_id, state="readonly")
         # self.combo_box_template_id.insert(2, "salut2")
         self.combo_box_template_id.pack(fill=tk.BOTH, side=tk.LEFT, expand=0, padx=5, pady=5)
         # self.template_id_text = tk.Entry(self.frame_template_id)
@@ -219,6 +220,10 @@ class Application(tk.Frame):
     def on_webappstore_change(self, *args):
         path = pathlib.Path(self.webappsstore_text.get())
         if not path.is_file():
+            self.combo_box_template_id.config(state="normal")
+            self.combo_box_template_id['values'] = ()
+            self.combo_box_template_id.set("")
+            self.combo_box_template_id.config(state="readonly")
             return
         try:
             conn = sqlite3.connect(str(path))
@@ -227,11 +232,13 @@ class Application(tk.Frame):
             result = cursor.fetchall()
         except sqlite3.DatabaseError:
             messagebox.showinfo(message="Impossible a d'ouvrir le fichier")
-            self.combo_box_template_id.config(state="DISABLED")
+            self.webappsstore_text.config(state="normal")
             self.webappsstore_text.delete(0, tk.END)
-            self.combo_box_template_id.config(state="NORMAL")
+            self.webappsstore_text.config(state="readonly")
+            self.combo_box_template_id.config(state="normal")
             self.combo_box_template_id['values'] = ()
-            self.combo_box_template_id.config(state="DISABLED")
+            self.combo_box_template_id.set("")
+            self.combo_box_template_id.config(state="readonly")
             return
         finally:
             conn.close()
@@ -245,7 +252,7 @@ class Application(tk.Frame):
         ids_list = list((list_base_string[i].strip('"') for i in range(len_list)))
         
 
-        self.combo_box_template_id.config(state="NORMAL")
+        self.combo_box_template_id.config(state="readonly")
         self.combo_box_template_id['values'] = ids_list
         self.combo_box_template_id.current(newindex=0)
         # if result == []:
@@ -296,6 +303,9 @@ class Application(tk.Frame):
             sql = 'UPDATE webappsstore2 SET value=? WHERE originKey LIKE "%%ociasom%%" AND key LIKE ?' #% (json_str, template_name)
             cursor.execute(sql, (json_str, template_name))
         except FileNotFoundError:
+            return
+        except Exception:
+            messagebox.showinfo(message="Erreur lors de la lecture du fichier json")
             return
         finally:
             conn.commit()
@@ -354,7 +364,9 @@ class Application(tk.Frame):
         except FileNotFoundError:
             messagebox.showinfo(message="Le fichier n'existe pas", title="Fichier non trouvé")
             return
-
+        except Exception:
+            messagebox.showinfo(message="Erreur lors de la lecture du fichier json")
+            return
         result = parse_json(json_dict, self.img_path.get())
 
         # ecriture du nouveau fichier
@@ -369,10 +381,10 @@ class Application(tk.Frame):
 
     def on_webappsstore_file_button_clicked(self, event=None):
         file_name = filedialog.askopenfilename(initialdir=".", filetypes=[("webappsstore.sqlite","webappsstore.sqlite")])
-        self.webappsstore_text.config(state=tk.NORMAL)
+        self.webappsstore_text.config(state="normal")
         self.webappsstore_text.delete(0, tk.END)
         self.webappsstore_text.insert(0, file_name)
-        self.webappsstore_text.config(state=tk.DISABLED)
+        self.webappsstore_text.config(state="readonly")
         return
 
     def on_file_html_button_clicked(self, event=None):
@@ -385,6 +397,9 @@ class Application(tk.Frame):
         except FileNotFoundError:
             if file_name != "":
                 messagebox.showinfo(message="Le fichier n'existe pas", title="Fichier non trouvé")
+            return
+        except Exception:
+            messagebox.showinfo(message="Erreur lors de la lecture du html")
             return
 
         # modification du titre
