@@ -12,14 +12,15 @@ import os
 
 def modif_text(text):
     # à mettre avant le traitement des espaces sinon le -e : peut devenir -e&nbsp:
+    # obliger d'utiliser le code utf8 sinon le str(soup) va proteger les &
     # Modification de la féminisation
-    result = re.sub("-e-s|-e", lambda m: "&#8209;e" if m.group(0) == "-e" else "&#8209;e&#8209;s ", text)
+    result = re.sub("-e-s|-e", lambda m: "\u2011e" if m.group(0) == "-e" else "\u2011e\u2011s ", text)
     # Suppression des espaces multiple
     result = re.sub("( |\u00a0|&nbsp;)+", " ", result)
     # Modification de la ponctuation
-    result = re.sub("[\u00a0 ]?([:!\?])[\u00a0 ]?", r"&nbsp;\1 ", result)
+    result = re.sub("[\u00a0 ]?([:!\?])[\u00a0 ]?", "\u00a0\\1 ", result)
     # modification des guillements
-    result = re.sub('"[\u00a0 ]?((.|\s)*?)[\u00a0 ]?"', r"&laquo;&nbsp;\1&nbsp;&raquo;", result)
+    result = re.sub('"[\u00a0 ]?((.|\s)*?)[\u00a0 ]?"', "\u00ab\u00a0\\1\u00a0\u00bb", result)
     return result
 
 
@@ -130,25 +131,21 @@ def firefox_path():
     elif "posix" in os.name:
         return "firefox"
     else:
-        raise Warning
+        raise Warning("impossible de determiner l'os")
 
 
 def win_firefox_path():
-    try:
-        win32_firefox_path = os.environ["ProgramFiles(x86)"] + "\\Mozilla Firefox\\firefox.exe"
-        if not os.path.isfile(win32_firefox_path):
-            win32_firefox_path = ""
-    except KeyError:
+    
+    win32_firefox_path = "C:\\Program Files (x86)" + "\\Mozilla Firefox\\firefox.exe"
+    if not os.path.isfile(win32_firefox_path):
         win32_firefox_path = ""
-    try:
-        win64_firefox_path = os.environ["ProgramFiles"] + "\\Mozilla Firefox\\firefox.exe"
-        if not os.path.isfile(win64_firefox_path):
-            win64_firefox_path = ""
-    except KeyError:
+    
+    win64_firefox_path = "C:\\Program Files" + "\\Mozilla Firefox\\firefox.exe"
+    if not os.path.isfile(win64_firefox_path):
         win64_firefox_path = ""
 
     if win64_firefox_path != "" and win32_firefox_path != "":
-        raise Warning
+        raise Warning("aucun path valide")
     firefox_path = win32_firefox_path or win64_firefox_path
     return firefox_path
 

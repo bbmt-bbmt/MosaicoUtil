@@ -171,7 +171,6 @@ class Application(tk.Frame):
         self.label_template_id = tk.Label(self.frame_template_id,text="Template id")
         self.label_template_id.pack(side=tk.LEFT, padx=5, pady=5)
         self.combo_box_template_id = ttk.Combobox(self.frame_template_id, state="readonly")
-        # self.combo_box_template_id.insert(2, "salut2")
         self.combo_box_template_id.pack(fill=tk.BOTH, side=tk.LEFT, expand=0, padx=5, pady=5)
         # self.template_id_text = tk.Entry(self.frame_template_id)
         # self.template_id_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=0, padx=5, pady=5)
@@ -324,7 +323,7 @@ class Application(tk.Frame):
             try:
                 subprocess.Popen([firefox_path(), "https://mosaico.io/editor.html#%s" % template_id])
             # on prend tout pour ne pas crasher le programme
-            except Exception as e:
+            except Exception:
                 messagebox.showinfo(message="Impossible de lancer firefox, vous devez le faire vous même :-)")
         return
 
@@ -431,7 +430,11 @@ class Application(tk.Frame):
 
 
         # modification des balises
-        html = soup.prettify(formatter=None)
+        # test d'une autre methode
+        # html = soup.prettify(formatter=None)
+        # on met str(soup) pour eviter le beau formatage qui rajoute un espace
+        # si une virgule est apres une balise : <b>aaa</b>,
+        html = str(soup)
         html = modif_balise(html)
 
 
