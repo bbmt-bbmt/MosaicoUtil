@@ -4,6 +4,7 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import ttk
 import re
 import pathlib
 import sys
@@ -20,15 +21,12 @@ import time
 import configparser
 import urllib
 import subprocess
-import ttk
 from ressource import *
 
 # todo
 # les try except sont inutiles dans les bouton json,
 # des que le fichier change la connection est verifie dans on_webappstore_change
-# à enlever 
-
-
+# à enlever
 
 
 class FindThread(Thread):
@@ -53,7 +51,7 @@ class FindThread(Thread):
                 if "firefox" in root.lower():
                     for filename in fnmatch.filter(filenames, profile_file):
                         profile_matches.append(os.path.join(root, filename))
-                if  profile_matches:
+                if profile_matches:
                     break
             if profile_matches == []:
                 messagebox.showinfo(message="Aucun fichier profiles.ini trouvé", title="Erreur")
@@ -97,6 +95,7 @@ class FindThread(Thread):
             throbber_thread.join()
         return
 
+
 class ThrobberThread(Thread):
     def __init__(self, throbber_label, data_image):
         super().__init__()
@@ -114,12 +113,13 @@ class ThrobberThread(Thread):
                 img = tk.PhotoImage(data=self.gif, format="gif - {}".format(self.num))
 
                 self.throbber_label.config(image=img)
-                self.throbber_label.image=img
-                
+                self.throbber_label.image = img
+
                 self.num += 1
             except:
                 self.num = 0
         self.throbber_label.pack_forget()
+
 
 class Application(tk.Frame):
     def __init__(self):
@@ -137,7 +137,7 @@ class Application(tk.Frame):
         self.param_commun.pack(fill=tk.X, padx=20, pady=10)
         self.frame_img_path = tk.Frame(self.param_commun)
         self.frame_img_path.pack(fill=tk.X)
-        self.label_img_path = tk.Label(self.frame_img_path,text="Path des images")
+        self.label_img_path = tk.Label(self.frame_img_path, text="Path des images")
         self.label_img_path.pack(side=tk.LEFT, padx=10, pady=5)
         self.img_path = tk.Entry(self.frame_img_path)
         self.img_path.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=10, pady=5)
@@ -148,13 +148,13 @@ class Application(tk.Frame):
 
         self.frame_webappsstore = tk.Frame(self.json_group)
         self.frame_webappsstore.pack(fill=tk.X)
-        self.label_webappsstore = tk.Label(self.frame_webappsstore,text="File webappsstore")
+        self.label_webappsstore = tk.Label(self.frame_webappsstore, text="File webappsstore")
         self.label_webappsstore.pack(side=tk.LEFT, padx=5, pady=5)
         # poru tracer le changement de texte
         self.str_webappstore = tk.StringVar()
         self.str_webappstore.trace("w", self.on_webappstore_change)
-        self.webappsstore_text = tk.Entry(self.frame_webappsstore, textvariable=self.str_webappstore, state="readonly", 
-                                          disabledforeground="black", disabledbackground="white")
+        self.webappsstore_text = tk.Entry(self.frame_webappsstore, textvariable=self.str_webappstore, state="readonly",
+                                          disabledforeground="black", disabledbackground="white", width=10)
         self.webappsstore_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=5, pady=5)
         self.webappsstore_file_button = tk.Button(self.frame_webappsstore, text="...", command=self.on_webappsstore_file_button_clicked)
         self.webappsstore_file_button.pack(side=tk.LEFT,padx=5, pady=5)
@@ -168,7 +168,7 @@ class Application(tk.Frame):
 
         self.frame_template_id = tk.Frame(self.json_group)
         self.frame_template_id.pack(fill=tk.X)
-        self.label_template_id = tk.Label(self.frame_template_id,text="Template id")
+        self.label_template_id = tk.Label(self.frame_template_id, text="Template id")
         self.label_template_id.pack(side=tk.LEFT, padx=5, pady=5)
         self.combo_box_template_id = ttk.Combobox(self.frame_template_id, state="readonly")
         self.combo_box_template_id.pack(fill=tk.BOTH, side=tk.LEFT, expand=0, padx=5, pady=5)
@@ -184,7 +184,6 @@ class Application(tk.Frame):
         self.modif_json_button = tk.Button(self.frame_json_button, text="Modif json", command=self.on_modif_json_button_clicked)
         self.modif_json_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-
         # interface pour les modif html
         self.html_group = tk.LabelFrame(self, text="Modif HTML")
         self.html_group.pack(fill=tk.X, padx=20, pady=10)
@@ -197,13 +196,10 @@ class Application(tk.Frame):
         self.title_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=1, padx=10, pady=5)
         self.title_text.bind("<KeyPress-Return>", self.on_file_html_button_clicked)
 
-        
-
         self.frame_html_file_button = tk.Frame(self.html_group)
         self.frame_html_file_button.pack(fill=tk.X)
         self.file_html_button = tk.Button(self.frame_html_file_button, text="Choisir le fichier à modifier", command=self.on_file_html_button_clicked)
         self.file_html_button.pack(pady=5)
-
 
         # modif du titre et de l'icone de l'interface
         self.master.title('Mosaico Util')
@@ -212,8 +208,6 @@ class Application(tk.Frame):
         # self.master.resizable(width=False, height=False)
 
         self.centerWindow()
-
-
         return
 
     def on_webappstore_change(self, *args):
@@ -243,14 +237,14 @@ class Application(tk.Frame):
             conn.close()
         # on récupere le str de la base de doonnée
         # print(result)
-        
+
         base_string = result[0][0][1:-1]
         # on split pour juste avoir l'id dans une list
         list_base_string = base_string.split(",")
         len_list = len(list_base_string)
         ids_list = list((list_base_string[i].strip('"') for i in range(len_list)))
-        
 
+        # mettre state="normal" pouvoir modifier manuellement l'id
         self.combo_box_template_id.config(state="readonly")
         self.combo_box_template_id['values'] = ids_list
         self.combo_box_template_id.current(newindex=0)
@@ -265,9 +259,9 @@ class Application(tk.Frame):
 
         sw = self.master.winfo_screenwidth()
         sh = self.master.winfo_screenheight()
-        
-        x = (sw - w)/2
-        y = (sh - h)/2
+
+        x = (sw - w) / 2
+        y = (sh - h) / 2
         self.master.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
     def on_webappsstore_auto_button_clicked(self):
@@ -356,7 +350,7 @@ class Application(tk.Frame):
         return
 
     def on_modif_json_button_clicked(self):
-        file_name = filedialog.askopenfilename(initialdir=".", filetypes=[("json","*.json")])
+        file_name = filedialog.askopenfilename(initialdir=".", filetypes=[("json", "*.json")])
         try:
             with open(file_name, mode="r", encoding="utf-8") as json_file:
                 json_dict = json.load(json_file)
@@ -420,14 +414,12 @@ class Application(tk.Frame):
                 # faut le faire 2 fois à cause du cas %2520
                 src = urllib.parse.unquote(img["src"])
                 src = urllib.parse.unquote(src)
-                reg_img_name = re.search("/.*/(.*\.[\w]{3})",src)
+                reg_img_name = re.search("/.*/(.*\.[\w]{3})", src)
                 try: 
                     img_name = reg_img_name.group(1)
                     img["src"] = img_path + urllib.parse.quote(img_name)
                 except AttributeError:
                     pass
-
-
 
         # modification des balises
         # test d'une autre methode
@@ -437,7 +429,6 @@ class Application(tk.Frame):
         html = str(soup)
         html = modif_balise(html)
 
-
         # ecriture du nouveau fichier pour internet
         save_file_name = "fichier_pour_site_internet.html"
         with open(save_file_name, mode="w", encoding="utf-8") as f:
@@ -445,7 +436,7 @@ class Application(tk.Frame):
 
         # ecriture du nouveau fichier pour thunderbird
         # integration de la class pour thundirbird
-        html = html.replace("<img","<img moz-do-not-send='true'")
+        html = html.replace("<img", "<img moz-do-not-send='true'")
         # save_file_name = str(path.with_name("fichier_pour_thunderbird.html"))
         save_file_name = "fichier_pour_thunderbird.html"
         with open(save_file_name, mode="w", encoding="utf-8") as f:
